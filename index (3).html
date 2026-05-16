@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Global Math Cognition Lab</title>
+  <style>
+    body {
+      background: #050816;
+      color: #f9fafb;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      min-height: 100vh;
+    }
+    .container {
+      display: flex;
+      width: 100%;
+    }
+    .left, .right {
+      padding: 24px;
+    }
+    .left {
+      width: 55%;
+      border-left: 1px solid #1f2933;
+    }
+    .right {
+      width: 45%;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      color: #e5e7eb;
+    }
+    h2 {
+      font-size: 18px;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      color: #9ca3af;
+    }
+    .card {
+      background: #0b1020;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      border: 1px solid #111827;
+    }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    input, textarea, select {
+      background: #020617;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 8px 10px;
+      color: #e5e7eb;
+      width: 100%;
+      font-size: 14px;
+    }
+    button {
+      background: linear-gradient(135deg, #f97316, #ec4899);
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 25px rgba(236, 72, 153, 0.35);
+    }
+    .steps-list {
+      max-height: 220px;
+      overflow-y: auto;
+      font-size: 13px;
+    }
+    .step-item {
+      padding: 6px 8px;
+      border-radius: 8px;
+      margin-bottom: 4px;
+      background: #020617;
+      border: 1px solid #111827;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .step-item span {
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .badge {
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge.ok {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+    .badge.err {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+    }
+    .profile-block {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #111827;
+      font-size: 11px;
+      margin: 2px;
+    }
+    .highlight {
+      color: #f97316;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- يسار: حل المسألة -->
+    <div class="left">
+      <h1>Global Math Cognition Lab</h1>
+      <p style="color:#9ca3af; font-size:14px;">
+        مختبر لفهم طريقة تفكيرك في الرياضيات، خطوة بخطوة. كل خطوة تكتبها هنا تُحلَّل بالذكاء الاصطناعي.
+      </p>
+
+      <div class="card">
+        <h2>بيانات الطالب والمسألة</h2>
+        <div class="input-row">
+          <input id="studentId" placeholder="ID الطالب (مثلاً: hala_01)" />
+        </div>
+        <div class="input-row">
+          <input id="problemId" placeholder="ID المسألة (مثلاً: eq_2024_01)" />
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>اكتب خطوات الحل</h2>
+        <div class="input-row">
+          <textarea id="stepText" rows="2" placeholder="اكتب خطوة من خطوات الحل هنا..."></textarea>
+        </div>
+        <div class="input-row">
+          <select id="isCorrect">
+            <option value="true">هذه الخطوة صحيحة</option>
+            <option value="false">هذه الخطوة خاطئة / مشكوك فيها</option>
+          </select>
+          <button onclick="addStep()">إضافة خطوة</button>
+        </div>
+        <div class="steps-list" id="stepsList"></div>
+        <button style="margin-top:8px;" onclick="sendSession()">إرسال الجلسة للتحليل 🔥</button>
+      </div>
+    </div>
+
+    <!-- يمين: بروفايل العقل -->
+    <div class="right">
+      <h2>بروفايل العقل الرياضي</h2>
+      <div class="card">
+        <button onclick="loadProfile()">تحديث البروفايل من السيرفر</button>
+        <div id="profile" class="profile-block" style="margin-top:12px;">
+          لا يوجد بيانات بعد. أضف خطوات، أرسل الجلسة، ثم اضغط "تحديث البروفايل".
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const steps = [];
+
+    function addStep() {
+      const text = document.getElementById("stepText").value.trim();
+      const isCorrect = document.getElementById("isCorrect").value === "true";
+
+      if (!text) {
+        alert("اكتب خطوة أولاً.");
+        return;
+      }
+
+      const step = {
+        step_text: text,
+        is_correct: isCorrect,
+        timestamp: Date.now() / 1000
+      };
+
+      steps.push(step);
+      document.getElementById("stepText").value = "";
+      renderSteps();
+    }
+
+    function renderSteps() {
+      const container = document.getElementById("stepsList");
+      container.innerHTML = "";
+      steps.forEach((s, idx) => {
+        const div = document.createElement("div");
+        div.className = "step-item";
+        const span = document.createElement("span");
+        span.textContent = (idx + 1) + ") " + s.step_text;
+        const badge = document.createElement("span");
+        badge.className = "badge " + (s.is_correct ? "ok" : "err");
+        badge.textContent = s.is_correct ? "صحيحة" : "خاطئة";
+        div.appendChild(span);
+        div.appendChild(badge);
+        container.appendChild(div);
+      });
+    }
+
+    async function sendSession() {
+      const studentId = document.getElementById("studentId").value.trim();
+      const problemId = document.getElementById("problemId").value.trim();
+
+      if (!studentId || !problemId) {
+        alert("املأ ID الطالب و ID المسألة.");
+        return;
+      }
+      if (steps.length === 0) {
+        alert("أضف على الأقل خطوة واحدة.");
+        return;
+      }
+
+      const payload = {
+        student_id: studentId,
+        problem_id: problemId,
+        steps: steps
+      };
+
+      try {
+        const res = await fetch("http://localhost:8000/submit_session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        alert("تم إرسال الجلسة بنجاح ✅");
+        console.log(data);
+      } catch (err) {
+        console.error(err);
+        alert("فشل الاتصال بالسيرفر. تأكد أن الباك إند يعمل.");
+      }
+    }
+
+    async function loadProfile() {
+      const studentId = document.getElementById("studentId").value.trim();
+      if (!studentId) {
+        alert("اكتب ID الطالب أولاً.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:8000/profile/${studentId}`);
+        const data = await res.json();
+        if (data.error) {
+          document.getElementById("profile").innerHTML = "لا يوجد بيانات لهذا الطالب بعد.";
+          return;
+        }
+
+        const confusionTags = Object.entries(data.concept_confusion || {})
+          .map(([k, v]) => `<span class="tag">${k}: ${v}</span>`)
+          .join(" ");
+
+        document.getElementById("profile").innerHTML = `
+          <div>
+            <div><span class="highlight">ID الطالب:</span> ${data.student_id}</div>
+            <div><span class="highlight">عدد الجلسات:</span> ${data.total_sessions}</div>
+            <div><span class="highlight">إجمالي الخطوات:</span> ${data.total_steps}</div>
+            <div><span class="highlight">إجمالي الأخطاء:</span> ${data.total_errors}</div>
+            <div><span class="highlight">نسبة الأخطاء:</span> ${data.error_rate}</div>
+            <div style="margin-top:8px;"><span class="highlight">أنماط اللبس المفاهيمي:</span><br>${confusionTags || "لا يوجد بيانات كافية بعد."}</div>
+            <div style="margin-top:12px; color:#f97316; font-weight:600;">تحليل الذكاء الاصطناعي:</div>
+            <div>${data.ai_comment}</div>
+          </div>
+        `;
+      } catch (err) {
+        console.error(err);
+        alert("فشل تحميل البروفايل.");
+      }
+    }
+  </script>
+</body>
+</html>
